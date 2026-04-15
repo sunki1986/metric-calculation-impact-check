@@ -14,41 +14,34 @@ jobs:
       - name: Checkout PR Branch
         uses: actions/checkout@v4
         with:
-          path: pr-branch  # This creates a temp folder named 'pr-branch'
+          path: pr-branch
 
       - name: Checkout main Branch
         uses: actions/checkout@v4
         with:
           ref: main
-          path: base-branch # This creates a temp folder named 'base-branch'
+          path: base-branch
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      # 1. Install uv
-      - name: Install uv
+      - name: Set up uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          python-version: '3.13'
 
-      # 2. Install dependencies using uv
       - name: Install Dependencies
         run: |
-          # We sync using the lockfile in your PR branch
+          # This installs fastapi, pydantic, etc. from your pr-branch files
           uv sync --project pr-branch
 
-      # 3. Run validation using 'uv run'
       - name: Run Validation
         run: |
-          # 'uv run' ensures the script uses the virtual environment created above
-          uv run python pr-branch/validate_metrics.py
+          # 'uv run' now uses the environment created in the previous step
+          uv run --project pr-branch python pr-branch/validate_metrics.py
         
       - name: Comment and Fail PR
         if: failure()
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
-          --body "❌ **Metric Validation Failed**: The results on this branch differ from the 'developer' branch. Merge is blocked."
+          --body "❌ **Metric Validation Failed**: The results on this branch differ from the **main** branch. Merge is blocked."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
