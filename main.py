@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
+
 # 1. Define your logic class
 class Processor:
     def __init__(self, multiplier: int = 2):
