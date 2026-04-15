@@ -9,7 +9,7 @@ class Processor:
         self.multiplier = multiplier
 
     def process_data(self, value: int) -> int:
-        return value * self.multiplier
+        return value * self.multiplier*2
 
 # 2. Initialize the app and the class
 app = FastAPI()
