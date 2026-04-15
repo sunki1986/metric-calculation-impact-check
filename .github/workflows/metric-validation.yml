@@ -25,12 +25,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
+      # 1. Install uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # 2. Install dependencies using uv
+      - name: Install Dependencies
+        run: |
+          # We sync using the lockfile in your PR branch
+          uv sync --project pr-branch
+
+      # 3. Run validation using 'uv run'
       - name: Run Validation
         run: |
-          # Use the script name exactly as it appears in your sidebar
-          python pr-branch/validate_metrics.py
+          # 'uv run' ensures the script uses the virtual environment created above
+          uv run python pr-branch/validate_metrics.py
         
       - name: Comment and Fail PR
         if: failure()
