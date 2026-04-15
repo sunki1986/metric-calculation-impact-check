@@ -1,0 +1,41 @@
+name: Metric Calculation Validation
+
+on:
+  pull_request:
+    branches: [ main ] # Trigger specifically when targeting the developer branch
+
+jobs:
+  validate-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+        with:
+          path: pr-branch  # This creates a temp folder named 'pr-branch'
+
+      - name: Checkout main Branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: base-branch # This creates a temp folder named 'base-branch'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run Validation
+        run: |
+          # Use the script name exactly as it appears in your sidebar
+          python pr-branch/validate_metrics.py
+        
+      - name: Comment and Fail PR
+        if: failure()
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+          --body "❌ **Metric Validation Failed**: The results on this branch differ from the 'developer' branch. Merge is blocked."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
